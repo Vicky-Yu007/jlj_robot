@@ -82,22 +82,24 @@ def main():
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
         while viewer.is_running() and frame < len(goal_trajectory):
+            joint_pos = np.array([data.qpos[a] for a in qpos_addresses])
+            joint_vel = np.array([data.qvel[a] for a in qvel_addresses])
+            base_ang_vel = data.qvel[3:6].copy()
+            gravity = rotate_inverse(data.qpos[3:7], np.array([0.0, 0.0, -1.0]))
+            obs = history.update(
+                joint_pos, joint_vel, base_ang_vel, gravity, previous_action
+            )
+            goal = goal_trajectory.future_goal(frame)
+            raw_action = policy(obs, goal)
+            raw_action = np.clip(raw_action, -5.0, 5.0)
+            target = default + 0.18 * raw_action
+            for i, actuator in enumerate(actuator_ids):
+                data.ctrl[actuator] = target[i]
+            previous_action = raw_action
+
             for _ in range(sim_steps_per_policy):
-                joint_pos = np.array([data.qpos[a] for a in qpos_addresses])
-                joint_vel = np.array([data.qvel[a] for a in qvel_addresses])
-                base_ang_vel = data.qvel[3:6].copy()
-                gravity = rotate_inverse(data.qpos[3:7], np.array([0.0, 0.0, -1.0]))
-                obs = history.update(
-                    joint_pos, joint_vel, base_ang_vel, gravity, previous_action
-                )
-                goal = goal_trajectory.future_goal(frame)
-                raw_action = policy(obs, goal)
-                raw_action = np.clip(raw_action, -5.0, 5.0)
-                target = default + 0.18 * raw_action
-                for i, actuator in enumerate(actuator_ids):
-                    data.ctrl[actuator] = target[i]
-                previous_action = raw_action
                 mujoco.mj_step(model, data)
+
             frame += 1
             if not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all():
                 print("Stopping: qpos or qvel contains NaN/Inf")
@@ -112,6 +114,7 @@ def main():
             if frame % 25 == 0:
                 print(f"frame={frame} time={data.time:.2f}s pelvis_z={data.qpos[2]:.3f} action_norm={np.linalg.norm(raw_action):.3f}")
             viewer.sync()
+
 
 
 if __name__ == "__main__":
