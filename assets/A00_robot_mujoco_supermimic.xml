@@ -68,6 +68,7 @@
     <material name="right_finger_mat" rgba="0.9608 0.9608 0.9647 1" specular="0" />
   </asset>
   <worldbody>
+    <geom name="ground" type="plane" pos="0 0 0" size="100 100 0.1" rgba="0.7 0.7 0.7 1" contype="1" conaffinity="1" friction="1 0.005 0.0001" />
     <body name="base_link" pos="0 0 0">
       <freejoint />
       <inertial pos="0.0062930524756751 4.16766909211605E-06 0.00484453880616456" mass="6.74310244175727" fullinertia="0.04798608 0.02438048 0.03707175 -0.00000106 -0.00001458 -0.00000075" />
