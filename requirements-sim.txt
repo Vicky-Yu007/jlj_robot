@@ -2,3 +2,5 @@ numpy
 onnxruntime
 mujoco
 pyyaml
+
+onnx
