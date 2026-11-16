@@ -65,13 +65,13 @@ def main():
             raise RuntimeError(f"MuJoCo actuator not found: {joint_name}_servo")
         actuator_ids.append(actuator)
 
-    data.qpos[0:3] = trajectory["body_pos_w"][0, 1]
-    data.qpos[3:7] = trajectory["body_quat_w"][0, 1]
-    data.qvel[0:3] = trajectory["body_lin_vel_w"][0, 1]
-    data.qvel[3:6] = trajectory["body_ang_vel_w"][0, 1]
+    data.qpos[0:3] = trajectory["body_pos_w"][9, 1]
+    data.qpos[3:7] = trajectory["body_quat_w"][9, 1]
+    data.qvel[0:3] = trajectory["body_lin_vel_w"][9, 1]
+    data.qvel[3:6] = trajectory["body_ang_vel_w"][9, 1]
     for i, address in enumerate(qpos_addresses):
-        data.qpos[address] = trajectory["joint_pos"][0, i]
-        data.qvel[qvel_addresses[i]] = trajectory["joint_vel"][0, i]
+        data.qpos[address] = trajectory["joint_pos"][9, i]
+        data.qvel[qvel_addresses[i]] = trajectory["joint_vel"][9, i]
     mujoco.mj_forward(model, data)
 
     previous_action = np.zeros(29, dtype=np.float32)
