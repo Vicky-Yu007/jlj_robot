@@ -1,0 +1,24 @@
+policy:
+  model_path: assets/policy.onnx
+  observation_dim: 930
+  goal_dim: 680
+  action_dim: 29
+  history_length: 10
+  future_frames: 10
+  trajectory_fps: 50.0
+  control_frequency: 50.0
+  raw_action_clip: 5.0
+
+trajectory:
+  path: assets/walk2_subject3.npz
+  end_behavior: hold_last
+
+robot:
+  mujoco_xml: assets/A00_robot_mujoco.xml
+  urdf: assets/A00_robot_mujoco.urdf
+  joint_count: 29
+
+validation:
+  require_finite_inputs: true
+  require_finite_outputs: true
+  max_torch_onnx_error: 0.0001
