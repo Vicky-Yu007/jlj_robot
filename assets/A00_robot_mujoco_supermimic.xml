@@ -1,6 +1,6 @@
 <mujoco model="A00机器人全身">
   <compiler angle="radian" meshdir="meshes/" />
-  <option timestep="0.005" />
+  <option timestep="0.005" integrator="implicitfast" iterations="10" ls_iterations="20" />
   <asset>
     <mesh name="base_link" file="base_link.STL" />
     <mesh name="right_hip_pitch" file="right_hip_pitch.STL" />
