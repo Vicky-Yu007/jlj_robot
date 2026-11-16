@@ -22,7 +22,7 @@ def main():
     joint_targets = motion["joint_pos"][frame].astype(np.float64)
     all_actuator_ids = []
     for joint_name in names:
-        name = joint_name.removesuffix("_joint")
+        name = joint_name
         all_actuator_ids.append(mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, name + "_servo"))
 
     ankle_name = "right_ankle_pitch"
@@ -37,7 +37,7 @@ def main():
     data.qpos[:3] = motion["body_pos_w"][frame, pelvis]
     data.qpos[3:7] = motion["body_quat_w"][frame, pelvis]
     for i, joint_name in enumerate(names):
-        name = joint_name.removesuffix("_joint")
+        name = joint_name
         jid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, name)
         data.qpos[model.jnt_qposadr[jid]] = motion["joint_pos"][frame, i]
 
