@@ -21,14 +21,7 @@ class ObservationHistory:
         self._frames.fill(0.0)
         self._initialized = False
 
-    def update(
-        self,
-        joint_pos: np.ndarray,
-        joint_vel: np.ndarray,
-        base_ang_vel: np.ndarray,
-        projected_gravity: np.ndarray,
-        previous_action: np.ndarray,
-    ) -> np.ndarray:
+    def _frame(self, joint_pos, joint_vel, base_ang_vel, projected_gravity, previous_action):
         values = [
             np.asarray(joint_pos, dtype=np.float32).reshape(-1) - self.default_joint_pos,
             np.asarray(joint_vel, dtype=np.float32).reshape(-1),
@@ -39,14 +32,17 @@ class ObservationHistory:
         expected = (29, 29, 3, 3, 29)
         if any(value.shape != (size,) for value, size in zip(values, expected)):
             raise ValueError("SuperMimic observation term has an unexpected shape")
-        frame = np.concatenate(values)
-        if not self._initialized:
-            self._frames[:] = frame
-            self._initialized = True
-        else:
-            self._frames[:-1] = self._frames[1:]
-            self._frames[-1] = frame
+        return np.concatenate(values)
 
+    def initialize(self, frames) -> None:
+        values = np.asarray(frames, dtype=np.float32)
+        if values.shape != (self.history_length, 93):
+            raise ValueError(f"expected history frames {(self.history_length, 93)}, got {values.shape}")
+        self._frames[:] = values
+        self._initialized = True
+
+    def packed(self) -> np.ndarray:
+        expected = (29, 29, 3, 3, 29)
         chunks = []
         start = 0
         for size in expected:
@@ -56,3 +52,22 @@ class ObservationHistory:
         if output.shape != (930,) or not np.isfinite(output).all():
             raise ValueError("invalid 930-d observation history")
         return output.copy()
+
+    def update(
+        self,
+        joint_pos: np.ndarray,
+        joint_vel: np.ndarray,
+        base_ang_vel: np.ndarray,
+        projected_gravity: np.ndarray,
+        previous_action: np.ndarray,
+    ) -> np.ndarray:
+        frame = self._frame(
+            joint_pos, joint_vel, base_ang_vel, projected_gravity, previous_action
+        )
+        if not self._initialized:
+            self._frames[:] = frame
+            self._initialized = True
+        else:
+            self._frames[:-1] = self._frames[1:]
+            self._frames[-1] = frame
+        return self.packed()
