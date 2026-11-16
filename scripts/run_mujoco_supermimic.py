@@ -78,6 +78,7 @@ def main():
     raw_action = np.zeros(29, dtype=np.float32)
     frame = 0
     sim_steps_per_policy = 4
+    pelvis_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
 
     with mujoco.viewer.launch_passive(model, data) as viewer:
         while viewer.is_running() and frame < len(goal_trajectory):
@@ -98,6 +99,18 @@ def main():
                 previous_action = raw_action
                 mujoco.mj_step(model, data)
             frame += 1
+            if not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all():
+                print("Stopping: qpos or qvel contains NaN/Inf")
+                break
+            if data.qpos[2] < 0.3 or data.qpos[2] > 3.0:
+                print(f"Stopping: pelvis height became abnormal: {data.qpos[2]:.3f} m")
+                break
+            viewer.cam.lookat[:] = data.xpos[pelvis_id]
+            viewer.cam.distance = 3.0
+            viewer.cam.elevation = -15
+            viewer.cam.azimuth = 120
+            if frame % 25 == 0:
+                print(f"frame={frame} time={data.time:.2f}s pelvis_z={data.qpos[2]:.3f} action_norm={np.linalg.norm(raw_action):.3f}")
             viewer.sync()
 
 
