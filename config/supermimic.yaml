@@ -14,7 +14,7 @@ trajectory:
   end_behavior: hold_last
 
 robot:
-  mujoco_xml: assets/A00_robot_mujoco_supermimic.xml
+  mujoco_xml: assets/A00_robot_mujoco_actual_used.xml
   urdf: assets/A00_robot_mujoco.urdf
   joint_count: 29
 
