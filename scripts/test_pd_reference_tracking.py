@@ -42,7 +42,12 @@ def main():
             viewer.cam.lookat[:] = data.xpos[pelvis_id]
             viewer.sync()
             if frame % 50 == 0:
-                print(f"frame={frame} time={data.time:.2f}s pelvis_z={data.qpos[2]:.3f}")
+                actual = np.array([data.qpos[model.jnt_qposadr[j]] for j in qids])
+                errors = motion["joint_pos"][frame] - actual
+                forces = np.asarray(data.actuator_force)[aids]
+                limits = np.asarray(model.actuator_forcerange)[aids, 1]
+                saturated = np.sum(np.abs(forces) >= 0.98 * limits)
+                print(f"frame={frame} time={data.time:.2f}s pelvis_z={data.qpos[2]:.3f} max_joint_error={np.max(np.abs(errors)):.3f} saturated={saturated}/29 max_force={np.max(np.abs(forces)):.2f}")
             frame += 1
             time.sleep(0.01)
     print("PD reference tracking finished")
