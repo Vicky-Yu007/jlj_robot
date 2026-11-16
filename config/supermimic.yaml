@@ -14,9 +14,28 @@ trajectory:
   end_behavior: hold_last
 
 robot:
-  mujoco_xml: assets/A00_robot_mujoco.xml
+  mujoco_xml: assets/A00_robot_mujoco_supermimic.xml
   urdf: assets/A00_robot_mujoco.urdf
   joint_count: 29
+
+  # These values must match the training run.
+  action_scale: 0.18
+  torque_limits:
+    hip: 120.0
+    knee: 120.0
+    ankle: 45.0
+    waist: 40.0
+    shoulder: 40.0
+    elbow: 40.0
+    wrist: 12.0
+  pd_gains:
+    hip: [180.0, 3.0]
+    knee: [220.0, 4.5]
+    ankle: [120.0, 2.5]
+    waist: [80.0, 1.8]
+    shoulder: [80.0, 1.8]
+    elbow: [80.0, 1.8]
+    wrist: [20.0, 0.8]
 
 validation:
   require_finite_inputs: true
