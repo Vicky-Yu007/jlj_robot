@@ -18,7 +18,7 @@ def main():
     pelvis_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
     qids, aids = [], []
     for n in names:
-        n = n.removesuffix("_joint")
+        n = n
         jid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, n)
         aid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, n + "_servo")
         qids.append(jid); aids.append(aid)
