@@ -19,7 +19,7 @@ def main():
     pelvis = [str(x) for x in motion["body_names"]].index("pelvis")
     frame = 9
 
-    ankle_name = "right_ankle_pitch"
+    joint_targets = motion["joint_pos"][frame].astype(np.float64)\n    all_actuator_ids = []\n    for joint_name in names:\n        name = joint_name.removesuffix("_joint")\n        all_actuator_ids.append(mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, name + "_servo"))\n\n    ankle_name = "right_ankle_pitch"
     ankle_index = names.index("right_ankle_pitch_joint")
     ankle_jid = mujoco.mj_name2id(
         model, mujoco.mjtObj.mjOBJ_JOINT, ankle_name
@@ -49,7 +49,7 @@ def main():
             for _ in range(25):
                 if not viewer.is_running():
                     return
-                data.ctrl[ankle_aid] = target
+                data.ctrl[:] = 0.0\n                for i, aid in enumerate(all_actuator_ids):\n                    data.ctrl[aid] = joint_targets[i]\n                data.ctrl[ankle_aid] = target
                 mujoco.mj_step(model, data)
                 viewer.sync()
                 actual = data.qpos[model.jnt_qposadr[ankle_jid]]
