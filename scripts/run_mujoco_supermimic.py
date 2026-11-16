@@ -76,7 +76,9 @@ def main():
 
     previous_action = np.zeros(29, dtype=np.float32)
     raw_action = np.zeros(29, dtype=np.float32)
-    frame = 0
+    previous_target = np.array([data.qpos[a] for a in qpos_addresses], dtype=np.float32)
+    target_blend = 0.1
+    frame = 9
     sim_steps_per_policy = 4
     pelvis_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pelvis")
 
@@ -92,7 +94,9 @@ def main():
             goal = goal_trajectory.future_goal(frame)
             raw_action = policy(obs, goal)
             raw_action = np.clip(raw_action, -5.0, 5.0)
-            target = default + 0.18 * raw_action
+            new_target = default + 0.18 * raw_action
+            target = previous_target + target_blend * (new_target - previous_target)
+            previous_target = target.copy()
             for i, actuator in enumerate(actuator_ids):
                 data.ctrl[actuator] = target[i]
             previous_action = raw_action
