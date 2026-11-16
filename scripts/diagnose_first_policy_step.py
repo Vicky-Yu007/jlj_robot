@@ -40,7 +40,7 @@ def main():
     obs = history.update(
         motion["joint_pos"][0],
         motion["joint_vel"][0],
-        motion["body_ang_vel_w"][0, pelvis],
+        quat_rotate_inverse(motion["body_quat_w"][0, pelvis], motion["body_ang_vel_w"][0, pelvis]),
         quat_rotate_inverse(motion["body_quat_w"][0, pelvis], np.array([0.0, 0.0, -1.0], dtype=np.float32)),
         np.zeros(29, dtype=np.float32),
     )
