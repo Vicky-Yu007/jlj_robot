@@ -7,9 +7,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 
-model = mujoco.MjModel.from_xml_path(
-    str(ROOT / "assets/A00_robot_mujoco_supermimic.xml")
-)
+def main():
+    model = mujoco.MjModel.from_xml_path(
+        str(ROOT / "assets/A00_robot_mujoco_supermimic.xml")
+    )
 data = mujoco.MjData(model)
 motion = np.load(ROOT / "assets/walk2_subject3.npz")
 
@@ -56,3 +57,5 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
                 f"force={data.actuator_force[ankle_aid]:+.3f}"
             )
             time.sleep(0.02)
+
+    main()
