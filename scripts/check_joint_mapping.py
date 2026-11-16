@@ -9,7 +9,7 @@ import numpy as np
 
 def xml_joint_names(path: str | Path) -> list[str]:
     text = Path(path).read_text()
-    return re.findall(r'<joint\\s+name="([^"]+)"', text)
+    return re.findall(r'<joint\s+name="([^"]+)"', text)
 
 
 def normalize(name: str) -> str:
