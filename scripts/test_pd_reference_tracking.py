@@ -47,7 +47,10 @@ def main():
                 forces = np.asarray(data.actuator_force)[aids]
                 limits = np.asarray(model.actuator_forcerange)[aids, 1]
                 saturated = np.sum(np.abs(forces) >= 0.98 * limits)
+                order = np.argsort(np.abs(errors))[::-1][:5]
+                worst = "; ".join(\n                    f"{motion["joint_names"][i]} err={errors[i]:+.3f} target={motion["joint_pos"][frame, i]:+.3f} actual={actual[i]:+.3f} force={forces[i]:+.2f}"\n                    for i in order\n                )
                 print(f"frame={frame} time={data.time:.2f}s pelvis_z={data.qpos[2]:.3f} max_joint_error={np.max(np.abs(errors)):.3f} saturated={saturated}/29 max_force={np.max(np.abs(forces)):.2f}")
+                print("  worst:", worst)
             frame += 1
             time.sleep(0.01)
     print("PD reference tracking finished")
