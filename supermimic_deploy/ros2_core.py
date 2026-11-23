@@ -321,7 +321,8 @@ class SuperMimicCore:
         )
 
         goal = self.goals[
-            min(self.frame, len(self.goals) - 1)
+            # The first post-reset policy input uses reference window 1.
+            min(self.frame + 1, len(self.goals) - 1)
         ].astype(np.float32)
 
         result = self.session.run(
@@ -342,6 +343,8 @@ class SuperMimicCore:
                 f"at frame {self.frame}"
             )
 
+        # The next observation contains the network output before command clipping.
+        raw_action = action
         action = np.clip(
             action,
             -self.action_clip,
@@ -361,7 +364,7 @@ class SuperMimicCore:
             self.upper,
         )
 
-        self.previous_action = action.copy()
+        self.previous_action = raw_action.copy()
         self.frame += 1
 
         return action, target, unclipped_target
