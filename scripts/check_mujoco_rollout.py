@@ -1,6 +1,6 @@
 """Run the ROS deployment policy in a free-base MuJoCo simulation, without ROS."""
 import argparse
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 import time
 from pathlib import Path
 import sys
@@ -12,6 +12,51 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from supermimic_deploy.ros2_core import JOINTS, SuperMimicCore, quat_inverse_rotate
+
+
+@contextmanager
+def tracking_view(model, data):
+    """Create, draw and release the GLFW window on the simulation thread."""
+    import glfw
+
+    if not glfw.init():
+        raise RuntimeError("GLFW could not open a display")
+    window = None
+    renderer = None
+    try:
+        window = glfw.create_window(960, 720, "A00 SuperMimic", None, None)
+        if not window:
+            raise RuntimeError("Could not create the MuJoCo window")
+        glfw.make_context_current(window)
+        glfw.swap_interval(0)
+        camera = mujoco.MjvCamera()
+        camera.distance = 3.0
+        camera.elevation = -15
+        camera.azimuth = 120
+        scene = mujoco.MjvScene(model, maxgeom=max(2000, model.ngeom * 2))
+        options = mujoco.MjvOption()
+        renderer = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_100)
+
+        def draw():
+            glfw.poll_events()
+            if glfw.window_should_close(window):
+                return False
+            camera.lookat[:] = data.qpos[:3]
+            mujoco.mjv_updateScene(model, data, options, None, camera,
+                                   mujoco.mjtCatBit.mjCAT_ALL, scene)
+            width, height = glfw.get_framebuffer_size(window)
+            if width and height:
+                mujoco.mjr_render(mujoco.MjrRect(0, 0, width, height), scene, renderer)
+                glfw.swap_buffers(window)
+            return True
+
+        yield draw
+    finally:
+        if renderer is not None:
+            renderer.free()
+        if window:
+            glfw.destroy_window(window)
+        glfw.terminate()
 
 
 def main():
@@ -70,26 +115,18 @@ def main():
 
     core.reset(*sensors())
     print(f"scene={args.xml.name} dt={model.opt.timestep} substeps={substeps} default_max={abs(core.default).max():.4f}", flush=True)
-    context = nullcontext(None)
-    if args.viewer:
-        from mujoco.viewer import launch_passive
-        context = launch_passive(model, data)
-    with context as viewer:
-        if viewer is not None:
-            viewer.cam.distance = 3.0
-            viewer.cam.elevation = -15
+    context = tracking_view(model, data) if args.viewer else nullcontext(None)
+    with context as draw:
         start = time.monotonic()
         for step in range(1, args.steps + 1):
-            if viewer is not None and not viewer.is_running():
-                print("Viewer closed")
-                return
             action, target, _ = core.step(*sensors())
             data.ctrl[ids] = target
             for _ in range(substeps):
                 mujoco.mj_step(model, data)
-            if viewer is not None:
-                viewer.cam.lookat[:] = data.qpos[:3]
-                viewer.sync()
+            if draw is not None:
+                if not draw():
+                    print("Viewer closed")
+                    return
                 time.sleep(max(0, start + step * 0.02 - time.monotonic()))
             z = data.qpos[2]
             if not np.isclose(data.time, step * 0.02) or not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all():
