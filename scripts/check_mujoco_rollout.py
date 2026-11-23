@@ -64,10 +64,12 @@ def main():
     parser.add_argument("--xml", type=Path, default=ROOT / "assets/A00_robot_mujoco_supermimic.xml")
     parser.add_argument("--steps", type=int, default=500)
     parser.add_argument("--viewer", action="store_true", help="Show the simulation at wall-clock speed")
+    parser.add_argument("--sim-raw-action", action="store_true",
+                        help="Compare raw network actions in simulation; joint targets and actuator forces stay limited")
     args = parser.parse_args()
     model = mujoco.MjModel.from_xml_path(str(args.xml))
     data = mujoco.MjData(model)
-    core = SuperMimicCore(ROOT)
+    core = SuperMimicCore(ROOT, action_clip=np.inf) if args.sim_raw_action else SuperMimicCore(ROOT)
     with np.load(ROOT / "assets/walk2_subject3.npz") as motion:
         names = list(motion["joint_names"].astype(str))
         cols = [names.index(name + "_joint") for name in JOINTS]
