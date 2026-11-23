@@ -9,6 +9,7 @@ import threading
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu, JointState
 from trajectory_msgs.msg import (
     JointTrajectory,
@@ -149,7 +150,7 @@ class SuperMimicRos2Node(Node):
                 "imu_topic"
             ).value,
             self.on_imu,
-            10,
+            qos_profile_sensor_data,
         )
 
         self.command_pub = self.create_publisher(
