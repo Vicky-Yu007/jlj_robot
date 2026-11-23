@@ -69,7 +69,7 @@ def main():
     args = parser.parse_args()
     model = mujoco.MjModel.from_xml_path(str(args.xml))
     data = mujoco.MjData(model)
-    core = SuperMimicCore(ROOT, action_clip=np.inf) if args.sim_raw_action else SuperMimicCore(ROOT)
+    core = SuperMimicCore(ROOT, use_raw_policy_action=args.sim_raw_action)
     with np.load(ROOT / "assets/walk2_subject3.npz") as motion:
         names = list(motion["joint_names"].astype(str))
         cols = [names.index(name + "_joint") for name in JOINTS]

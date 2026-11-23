@@ -38,6 +38,8 @@ class SuperMimicRos2Node(Node):
             True,
         )
 
+        self.declare_parameter("use_raw_policy_action", False)
+
         self.declare_parameter(
             "joint_state_topic",
             "/joint_states",
@@ -100,6 +102,7 @@ class SuperMimicRos2Node(Node):
 
         self.core = SuperMimicCore(
             root=root,
+            use_raw_policy_action=self.get_parameter("use_raw_policy_action").value,
             default_joint_pos_path=(
                 self.get_parameter(
                     "default_joint_pos_path"

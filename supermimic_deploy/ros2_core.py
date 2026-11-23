@@ -152,6 +152,8 @@ class SuperMimicCore:
         ),
         action_scale: float = 0.18,
         action_clip: float = 5.0,
+        *,
+        use_raw_policy_action: bool = False,
     ):
         root = Path(root)
 
@@ -202,7 +204,7 @@ class SuperMimicCore:
         )
 
         self.action_scale = float(action_scale)
-        self.action_clip = float(action_clip)
+        self.action_clip = np.inf if use_raw_policy_action else float(action_clip)
 
         import onnxruntime as ort
 
